@@ -17,7 +17,11 @@ def build_files(data_path, tokenized_data_path, num_pieces, full_tokenizer, min_
         print('reading lines')
         # lines = json.load(f)
         # lines = [line.replace('\n', ' [SEP] ') for line in lines]  # 用[SEP]表示换行, 段落之间使用SEP表示段落结束
-        lines = [json.loads(line)['content'].replace('\n', ' [SEP] ') for line in f]
+        lines = []
+        for line in f:
+            line = json.load(line)
+            line['content'].replace('\n', ' [SEP] ')
+            lines.append(line['content'])
     all_len = len(lines)
     if not os.path.exists(tokenized_data_path):
         os.mkdir(tokenized_data_path)
