@@ -89,6 +89,7 @@ def main():
     full_tokenizer.max_len = 999999
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print('using device:', device)
+    torch.cuda.set_device(0)
 
     raw_data_path = args.raw_data_path
     tokenized_data_path = args.tokenized_data_path
@@ -150,10 +151,10 @@ def main():
             raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
         model, optimizer = amp.initialize(model, optimizer, opt_level=fp16_opt_level)
 
-    if torch.cuda.device_count() > 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        model = DataParallel(model, device_ids=[int(i) for i in args.device.split(',')])
-        multi_gpu = True
+    # if torch.cuda.device_count() > 1:
+    #     print("Let's use", torch.cuda.device_count(), "GPUs!")
+    #     model = DataParallel(model, device_ids=[int(i) for i in args.device.split(',')])
+    #     multi_gpu = True
     print('starting training')
     overall_step = 0
     running_loss = 0
