@@ -76,9 +76,9 @@ def main():
     n_ctx = model_config.n_ctx
     full_tokenizer = tokenization_bert.BertTokenizer(vocab_file=args.tokenizer_path)
     full_tokenizer.max_len = 999999
-    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print('using device:', device)
+    torch.cuda.set_device(0)
 
     raw_data_path = args.raw_data_path
     tokenized_data_path = args.tokenized_data_path
