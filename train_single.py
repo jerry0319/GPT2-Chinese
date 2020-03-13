@@ -76,7 +76,8 @@ def main():
     n_ctx = model_config.n_ctx
     full_tokenizer = tokenization_bert.BertTokenizer(vocab_file=args.tokenizer_path)
     full_tokenizer.max_len = 999999
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print('using device:', device)
 
     raw_data_path = args.raw_data_path
@@ -106,7 +107,7 @@ def main():
     else:
         model = transformers.modeling_gpt2.GPT2LMHeadModel.from_pretrained(args.pretrained_model)
     model.train()
-    model.to(f'{device}:{model.device_ids[0]}')
+    model.to(device)
     multi_gpu = False
     full_len = 0
     print('calculating total steps')
