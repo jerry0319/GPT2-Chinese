@@ -127,10 +127,10 @@ def main():
             raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
         model, optimizer = amp.initialize(model, optimizer, opt_level=fp16_opt_level)
 
-    if torch.cuda.device_count() > 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        model = DataParallel(model)
-        multi_gpu = True
+    # if torch.cuda.device_count() > 1:
+    #     print("Let's use", torch.cuda.device_count(), "GPUs!")
+    #     model = DataParallel(model)
+    #     multi_gpu = True
     print('starting training')
     running_loss = 0
     for epoch in range(epochs):
