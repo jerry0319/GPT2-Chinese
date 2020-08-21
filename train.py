@@ -20,7 +20,7 @@ def build_files(data_path, tokenized_data_path, num_pieces, full_tokenizer, min_
         lines = []
         for line in f:
             line = json.loads(line)
-            line['content'].replace('\n', ' [SEP] ')
+            line['content'] = line['content'].replace('\n', ' [SEP] ')
             lines.append(line['content'])
     all_len = len(lines)
     if not os.path.exists(tokenized_data_path):
