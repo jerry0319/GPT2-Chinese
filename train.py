@@ -10,18 +10,28 @@ from datetime import datetime
 from tqdm import tqdm
 from torch.nn import DataParallel
 from tokenizations.bpe_tokenizer import get_encoder
+import langconv
 
 
-def build_files(data_path, tokenized_data_path, num_pieces, full_tokenizer, min_length):
-    with open(data_path, 'r', encoding='utf8') as f:
-        print('reading lines')
-        # lines = json.load(f)
-        # lines = [line.replace('\n', ' [SEP] ') for line in lines]  # 用[SEP]表示换行, 段落之间使用SEP表示段落结束
+def build_files(data_path, tokenized_data_path, num_pieces, full_tokenizer, min_length, poetry=False):
+    if poetry:
         lines = []
-        for line in f:
-            line = json.loads(line)
-            line['content'] = line['content'].replace('\n', ' [SEP] ')
-            lines.append(line['content'])
+        for file in os.listdir(data_path):
+            if file.startswith('poet'):
+                with open(data_path + "/" + file, "r", encoding="utf-8") as f:
+                    _lines = json.loads(f.read())
+                    for line in _lines:
+                        poem = "".join(line['paragraphs'])
+                        lines.append(traditional_2_simplified(poem) + '[ SEP ]')
+    else:
+        with open(data_path, 'r', encoding='utf8') as f:
+            print('reading lines')
+            # lines = json.load(f)
+            # lines = [line.replace('\n', ' [SEP] ') for line in lines]  # 用[SEP]表示换行, 段落之间使用SEP表示段落结束
+            lines = []
+            for line in f:
+                line = json.loads(line)
+                lines.append(line['content'].replace('\n', ' [SEP] '))
     all_len = len(lines)
     if not os.path.exists(tokenized_data_path):
         os.mkdir(tokenized_data_path)
@@ -72,6 +82,7 @@ def main():
     parser.add_argument('--bpe_token', action='store_true', help='subword')
     parser.add_argument('--encoder_json', default="tokenizations/encoder.json", type=str, help="encoder.json")
     parser.add_argument('--vocab_bpe', default="tokenizations/vocab.bpe", type=str, help="vocab.bpe")
+    parser.add_argument('--poetry', action='store_true',)
 
     args = parser.parse_args()
     print('args:\n' + args.__repr__())
@@ -94,7 +105,6 @@ def main():
     full_tokenizer.max_len = 999999
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print('using device:', device)
-    torch.cuda.set_device(0)
 
     raw_data_path = args.raw_data_path
     tokenized_data_path = args.tokenized_data_path
@@ -112,6 +122,8 @@ def main():
     num_pieces = args.num_pieces
     min_length = args.min_length
     output_dir = args.output_dir
+    poetry = args.poetry
+
     tb_writer = SummaryWriter(log_dir=args.writer_dir)
     assert log_step % gradient_accumulation == 0
 
@@ -121,7 +133,7 @@ def main():
     if raw:
         print('building files')
         build_files(data_path=raw_data_path, tokenized_data_path=tokenized_data_path, num_pieces=num_pieces,
-                    full_tokenizer=full_tokenizer, min_length=min_length)
+                    full_tokenizer=full_tokenizer, min_length=min_length, poetry=poetry)
         print('files built')
 
     if not args.pretrained_model:
@@ -252,6 +264,14 @@ def main():
     # torch.save(scheduler.state_dict(), output_dir + 'final_model/scheduler.pt')
     # torch.save(optimizer.state_dict(), output_dir + 'final_model/optimizer.pt')
 
+def traditional_2_simplified(sentence):
+    '''
+    将sentence中的繁体字转为简体字
+    :param sentence: 待转换的句子
+    :return: 将句子中繁体字转换为简体字之后的句子
+    '''
+    sentence = langconv.Converter('zh-hans').convert(sentence)
+    return sentence
 
 if __name__ == '__main__':
     main()
